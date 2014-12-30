@@ -1,0 +1,19 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.frankegan.sqrshare.MainActivity">
+
+
+    <item
+        android:id="@+id/action_about"
+        android:orderInCategory="100"
+        android:title="about"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_share"
+        android:icon="@android:drawable/ic_menu_share"
+        android:title="share"
+        app:showAsAction="ifRoom" />
+
+</menu>
