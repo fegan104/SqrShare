@@ -41,7 +41,7 @@
         android:layout_gravity="bottom|end"
         android:layout_margin="16dp"
         android:onClick="onFabClick"
-        android:src="@drawable/ic_action_new"
+        android:src="@drawable/ic_plus_white_36dp"
         fab:fab_colorNormal="@color/app_primary"
         fab:fab_colorPressed="@color/app_primary_dark" />
 </FrameLayout>

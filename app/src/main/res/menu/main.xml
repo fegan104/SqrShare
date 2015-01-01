@@ -12,7 +12,7 @@
 
     <item
         android:id="@+id/action_share"
-        android:icon="@android:drawable/ic_menu_share"
+        android:icon="@drawable/ic_share_variant_white_24dp"
         android:title="share"
         app:showAsAction="ifRoom" />
 
