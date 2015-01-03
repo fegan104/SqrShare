@@ -23,6 +23,7 @@ import de.psdev.licensesdialog.model.Notices;
 public class MainActivity extends ActionBarActivity implements
         PictureFragment.OnColorsCalculatedListener {
     private FrameLayout status;
+    private final String tag = "pic";
     private PictureFragment pic_fragment;
 
     /**
@@ -35,17 +36,25 @@ public class MainActivity extends ActionBarActivity implements
         status = (FrameLayout) findViewById(R.id.status);
         Toolbar toolbar = (Toolbar) findViewById(R.id.my_awesome_toolbar);
         setSupportActionBar(toolbar);
-        pic_fragment = (PictureFragment) getSupportFragmentManager().findFragmentById(R.id.fragment);
         Intent intent = getIntent();
         String action = intent.getAction();
         String type = intent.getType();
+
+        pic_fragment = (PictureFragment) getSupportFragmentManager().findFragmentByTag(tag);
+
+        if (pic_fragment != null && pic_fragment.getData() != null) {
+            pic_fragment.setPicture(pic_fragment.getData());
+        } else if (pic_fragment == null) {
+            pic_fragment = new PictureFragment();
+            getSupportFragmentManager().beginTransaction().add(R.id.fragment, pic_fragment, tag).commit();
+        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
             status.setMinimumHeight(getStatusBarHeight());
 
         //this if for apps sharing to the app
-        if (Intent.ACTION_SEND.equals(action) && type != null && (type.startsWith("image/")) ) {
-                handleSentImage(intent); // Handle single image being sent to you
+        if (Intent.ACTION_SEND.equals(action) && type != null && (type.startsWith("image/"))) {
+            handleSentImage(intent); // Handle single image being sent to you
 
         }
 
@@ -55,10 +64,9 @@ public class MainActivity extends ActionBarActivity implements
     }
 
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-//        outState.put
-        //TODO fill this out with stuff for config changes
+    protected void onDestroy() {
+        super.onDestroy();
+        pic_fragment.setData(pic_fragment.getPictureBitmap());
     }
 
     /**

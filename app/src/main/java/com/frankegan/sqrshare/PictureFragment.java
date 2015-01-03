@@ -39,6 +39,7 @@ public class PictureFragment extends Fragment implements PictureHolder, View.OnC
     private OnColorsCalculatedListener parent;
     private static ImageView imageView;
     private FloatingActionButton fab;
+    private static Bitmap data;
 
     /**
      * An interface for communicating that the colors of the ImageView hav been calculated,
@@ -55,6 +56,18 @@ public class PictureFragment extends Fragment implements PictureHolder, View.OnC
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        if (savedInstanceState != null) {
+            setPicture(getData());
+            calculateColors();
+        }
     }
 
     /**
@@ -104,6 +117,15 @@ public class PictureFragment extends Fragment implements PictureHolder, View.OnC
      * {@inheritDoc}
      */
     @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        setData(getPictureBitmap());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.fab:
@@ -126,6 +148,10 @@ public class PictureFragment extends Fragment implements PictureHolder, View.OnC
             e.printStackTrace();
             Toast.makeText(getActivity(), "couldn't get that picture", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    public void setPicture(Bitmap bm) {
+        imageView.setImageBitmap(bm);
     }
 
     /**
@@ -235,7 +261,7 @@ public class PictureFragment extends Fragment implements PictureHolder, View.OnC
      * @return the nearest power of two that can be used to scale a bitmap to the requested
      * height and width.
      */
-    public static int calculateInSampleSize(BitmapFactory.Options options,  int reqWidth, int reqHeight) {
+    public static int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
         // Raw height and width of image
         final int height = options.outHeight;
         final int width = options.outWidth;
@@ -284,5 +310,32 @@ public class PictureFragment extends Fragment implements PictureHolder, View.OnC
      */
     public void setFabColor(Integer clr) {
         fab.setColorNormal(clr);
+    }
+
+    /**
+     * Gets the Bitmap of the picture displayed in the Imageview.
+     * @return the picture's Bitmap
+     */
+    public Bitmap getPictureBitmap() {
+        BitmapDrawable bitmapDrawable = (BitmapDrawable) imageView.getDrawable();
+        if (bitmapDrawable != null)
+            return bitmapDrawable.getBitmap();
+        return null;
+    }
+
+    /**
+     * Sets the Bitmap data to be restored.
+     * @param data data to be saved
+     */
+    public void setData(Bitmap data) {
+        this.data = data;
+    }
+
+    /**
+     * Gets the data saved to the fragment for configuration changes.
+     * @return the Bitmap data saved to the fragment.
+     */
+    public Bitmap getData() {
+        return data;
     }
 }

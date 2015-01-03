@@ -25,11 +25,9 @@
             android:background="@color/app_primary"
             android:minHeight="?attr/actionBarSize" />
 
-        <fragment
+        <FrameLayout
             android:id="@+id/fragment"
-            android:name="com.frankegan.sqrshare.PictureFragment"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            tools:layout="@layout/fragment_layout" />
+            android:layout_height="match_parent"/>
     </LinearLayout>
 </FrameLayout>
