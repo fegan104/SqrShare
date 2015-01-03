@@ -9,10 +9,7 @@ import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.FrameLayout;
-
-import com.melnykov.fab.FloatingActionButton;
 
 import de.psdev.licensesdialog.LicensesDialog;
 import de.psdev.licensesdialog.licenses.ApacheSoftwareLicense20;
@@ -23,12 +20,9 @@ import de.psdev.licensesdialog.model.Notices;
 /**
  * @author frankegan on 11/24/14.
  */
-public class MainActivity extends ActionBarActivity implements PictureFragment.OnColorsCalculatedListener {
-
-    private final static int SELECT_PHOTO = 100;
-    private Uri uri;
+public class MainActivity extends ActionBarActivity implements
+        PictureFragment.OnColorsCalculatedListener {
     private FrameLayout status;
-    private FloatingActionButton fab;
     private PictureFragment pic_fragment;
 
     /**
@@ -41,7 +35,6 @@ public class MainActivity extends ActionBarActivity implements PictureFragment.O
         status = (FrameLayout) findViewById(R.id.status);
         Toolbar toolbar = (Toolbar) findViewById(R.id.my_awesome_toolbar);
         setSupportActionBar(toolbar);
-        fab = (FloatingActionButton) findViewById(R.id.fab);
         pic_fragment = (PictureFragment) getSupportFragmentManager().findFragmentById(R.id.fragment);
         Intent intent = getIntent();
         String action = intent.getAction();
@@ -51,19 +44,21 @@ public class MainActivity extends ActionBarActivity implements PictureFragment.O
             status.setMinimumHeight(getStatusBarHeight());
 
         //this if for apps sharing to the app
-        if (Intent.ACTION_SEND.equals(action) && type != null) {
-            if (type.startsWith("image/")) {
+        if (Intent.ACTION_SEND.equals(action) && type != null && (type.startsWith("image/")) ) {
                 handleSentImage(intent); // Handle single image being sent to you
-            }
+
         }
 
         //this is for apps trying to open images with our app
-        if (Intent.ACTION_VIEW.equals(action) && type != null) {
-            if (type.startsWith("image/")) {
-                uri = intent.getData();
-                pic_fragment.setPicture(uri);
-            }
-        }
+        if ((Intent.ACTION_VIEW.equals(action)) && (type != null) && (type.startsWith("image/")))
+            pic_fragment.setPicture(intent.getData());
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+//        outState.put
+        //TODO fill this out with stuff for config changes
     }
 
     /**
@@ -100,15 +95,6 @@ public class MainActivity extends ActionBarActivity implements PictureFragment.O
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent imageReturnedIntent) {
         super.onActivityResult(requestCode, resultCode, imageReturnedIntent);
-
-        switch (requestCode) {
-            case SELECT_PHOTO:
-                if (resultCode == RESULT_OK) {
-                    Uri selectedImage = imageReturnedIntent.getData();
-                    this.uri = selectedImage;
-                    pic_fragment.setPicture(selectedImage);
-                }
-        }
     }
 
     /**
@@ -116,7 +102,7 @@ public class MainActivity extends ActionBarActivity implements PictureFragment.O
      */
     @Override
     public void onColorsCalculated(Integer vib) {
-        fab.setColorNormal(vib);
+        pic_fragment.setFabColor(vib);
         getSupportActionBar().setBackgroundDrawable(new ColorDrawable(vib));
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
             status.setBackgroundColor(vib);
@@ -137,19 +123,6 @@ public class MainActivity extends ActionBarActivity implements PictureFragment.O
     }
 
     /**
-     * Handles clicks to any the Floating Action Button.
-     *
-     * @param v the fab that was clicked.
-     */
-    public void onFabClick(View v) {
-        switch (v.getId()) {
-            case R.id.fab:
-                openPicture();
-                break;
-        }
-    }
-
-    /**
      * A helper method for when an app shares an {@link android.content.Intent} to be opened by our app.
      * It changes the {@link android.widget.ImageView} to the image of the given intent.
      *
@@ -157,18 +130,8 @@ public class MainActivity extends ActionBarActivity implements PictureFragment.O
      */
     private void handleSentImage(Intent intent) {
         Uri imageUri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
-        this.uri = imageUri;
         if (imageUri != null)
             pic_fragment.setPicture(imageUri);
-    }
-
-    /**
-     * Lets you choose a picture from the Gallery to be opened in the app.
-     */
-    private void openPicture() {
-        Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
-        photoPickerIntent.setType("image/*");
-        startActivityForResult(photoPickerIntent, SELECT_PHOTO);
     }
 
     /**
@@ -183,7 +146,6 @@ public class MainActivity extends ActionBarActivity implements PictureFragment.O
             shareIntent.putExtra(Intent.EXTRA_STREAM, uri);
             startActivity(Intent.createChooser(shareIntent, getResources().getText(R.string.send_to)));
         }
-        return;
     }
 
     /**

@@ -2,6 +2,7 @@ package com.frankegan.sqrshare;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -21,6 +22,8 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.melnykov.fab.FloatingActionButton;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -30,62 +33,28 @@ import java.util.Date;
 /**
  * @author frankegan on 11/24/14.
  */
-public class PictureFragment extends Fragment implements PictureHolder {
+public class PictureFragment extends Fragment implements PictureHolder, View.OnClickListener {
+    private final static int SELECT_PHOTO = 100;
     private final static int MAX_RAW_IMG = 640;
-    private static ImageView imageView;
     private OnColorsCalculatedListener parent;
+    private static ImageView imageView;
+    private FloatingActionButton fab;
 
     /**
-     * A method that calculates how much a bitmap should be scaled down by.
-     *
-     * @param options   {@link android.graphics.BitmapFactory.Options} with "inJustDecodeBounds"
-     *                  set to true that has already been used to decoded a bitmap.
-     * @param reqWidth  The requested width of the output image.
-     * @param reqHeight The requested height of the output image.
-     * @return the nearest power of two that can be used to scale a bitmap to the requested
-     * height and width.
+     * An interface for communicating that the colors of the ImageView hav been calculated,
+     * to the parent Activity
      */
-    public static int calculateInSampleSize(BitmapFactory.Options options,
-                                            int reqWidth, int reqHeight) {
-        // Raw height and width of image
-        final int height = options.outHeight;
-        final int width = options.outWidth;
-        int inSampleSize = 1;
-
-        if (height > reqHeight || width > reqWidth) {
-
-            final int halfHeight = height / 2;
-            final int halfWidth = width / 2;
-            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
-            // height and width larger than the requested height and width.
-            while (((halfHeight / inSampleSize) > reqHeight)
-                    && ((halfWidth / inSampleSize) > reqWidth))
-                inSampleSize *= 2;
-        }
-        return inSampleSize;
+    public interface OnColorsCalculatedListener {
+        public void onColorsCalculated(Integer vibrant);
     }
 
     /**
-     * A method for adding a border to a bitmap so that the resulting image is square.
-     *
-     * @param source bitmap to be made square.
-     * @return the original bitmap with borders added to either the top or bottom
-     * such that it is now square.
+     * {@inheritDoc}
      */
-    public static Bitmap makeSquare(Bitmap source) {
-        boolean landscape = source.getWidth() > source.getHeight();
-        final int LENGTH = landscape ? source.getWidth() : source.getHeight();
-        Rect rect = landscape ?
-                new Rect(0, (LENGTH / 2) - (source.getHeight() / 2),
-                        LENGTH, (LENGTH / 2) + (source.getHeight() / 2))
-                :
-                new Rect((LENGTH / 2) - (source.getWidth() / 2), 0,
-                        (LENGTH / 2) + (source.getWidth() / 2), LENGTH);
-        Bitmap square = Bitmap.createBitmap(LENGTH, LENGTH, source.getConfig());
-        Canvas canvas = new Canvas(square);
-        canvas.drawColor(Color.WHITE);
-        canvas.drawBitmap(source, null, rect, null);
-        return square;
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setRetainInstance(true);
     }
 
     /**
@@ -109,11 +78,38 @@ public class PictureFragment extends Fragment implements PictureHolder {
      * {@inheritDoc}
      */
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_layout, container, false);
         imageView = (ImageView) v.findViewById(R.id.imageView);
+        fab = (FloatingActionButton) v.findViewById(R.id.fab);
+        fab.setOnClickListener(this);
         return v;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent imageReturnedIntent) {
+        switch (requestCode) {
+            case SELECT_PHOTO:
+                if (resultCode == Activity.RESULT_OK) {
+                    Uri selectedImage = imageReturnedIntent.getData();
+                    this.setPicture(selectedImage);
+                }
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.fab:
+                openPicture();
+                break;
+        }
     }
 
     /**
@@ -125,7 +121,7 @@ public class PictureFragment extends Fragment implements PictureHolder {
     public void setPicture(Uri uri) {
         try {
             imageView.setImageBitmap(makeSquare(decodeSampledBitmapFromUri(uri, MAX_RAW_IMG, MAX_RAW_IMG)));
-            colorizeVibrant();
+            calculateColors();
         } catch (IOException e) {
             e.printStackTrace();
             Toast.makeText(getActivity(), "couldn't get that picture", Toast.LENGTH_SHORT).show();
@@ -135,7 +131,7 @@ public class PictureFragment extends Fragment implements PictureHolder {
     /**
      * A helper method for generating and setting all the activity colors to match the Picture.
      */
-    public void colorizeVibrant() {
+    public void calculateColors() {
         Palette.generateAsync(((BitmapDrawable) imageView.getDrawable()).getBitmap(),
                 new Palette.PaletteAsyncListener() {
                     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
@@ -221,10 +217,72 @@ public class PictureFragment extends Fragment implements PictureHolder {
     }
 
     /**
-     * An interface for communicating that the colors of the ImageView hav been calculated,
-     * and the Activity can change the color pallet accordingly.
+     * Lets you choose a picture from the Gallery to be opened in the app.
      */
-    public interface OnColorsCalculatedListener {
-        public void onColorsCalculated(Integer vibrant);
+    public void openPicture() {
+        Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
+        photoPickerIntent.setType("image/*");
+        startActivityForResult(photoPickerIntent, SELECT_PHOTO);
+    }
+
+    /**
+     * A method that calculates how much a bitmap should be scaled down by.
+     *
+     * @param options   {@link android.graphics.BitmapFactory.Options} with "inJustDecodeBounds"
+     *                  set to true that has already been used to decoded a bitmap.
+     * @param reqWidth  The requested width of the output image.
+     * @param reqHeight The requested height of the output image.
+     * @return the nearest power of two that can be used to scale a bitmap to the requested
+     * height and width.
+     */
+    public static int calculateInSampleSize(BitmapFactory.Options options,  int reqWidth, int reqHeight) {
+        // Raw height and width of image
+        final int height = options.outHeight;
+        final int width = options.outWidth;
+        int inSampleSize = 1;
+
+        if (height > reqHeight || width > reqWidth) {
+
+            final int halfHeight = height / 2;
+            final int halfWidth = width / 2;
+            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
+            // height and width larger than the requested height and width.
+            while (((halfHeight / inSampleSize) > reqHeight)
+                    && ((halfWidth / inSampleSize) > reqWidth))
+                inSampleSize *= 2;
+        }
+        return inSampleSize;
+    }
+
+    /**
+     * A method for adding a border to a bitmap so that the resulting image is square.
+     *
+     * @param source bitmap to be made square.
+     * @return the original bitmap with borders added to either the top or bottom
+     * such that it is now square.
+     */
+    public static Bitmap makeSquare(Bitmap source) {
+        boolean landscape = source.getWidth() > source.getHeight();
+        final int LENGTH = landscape ? source.getWidth() : source.getHeight();
+        Rect rect = landscape ?
+                new Rect(0, (LENGTH / 2) - (source.getHeight() / 2),
+                        LENGTH, (LENGTH / 2) + (source.getHeight() / 2))
+                :
+                new Rect((LENGTH / 2) - (source.getWidth() / 2), 0,
+                        (LENGTH / 2) + (source.getWidth() / 2), LENGTH);
+        Bitmap square = Bitmap.createBitmap(LENGTH, LENGTH, source.getConfig());
+        Canvas canvas = new Canvas(square);
+        canvas.drawColor(Color.WHITE);
+        canvas.drawBitmap(source, null, rect, null);
+        return square;
+    }
+
+    /**
+     * sets the color of the Floating action button.
+     *
+     * @param clr the new background color of the FAB.
+     */
+    public void setFabColor(Integer clr) {
+        fab.setColorNormal(clr);
     }
 }
