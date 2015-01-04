@@ -1,6 +1,5 @@
 package com.frankegan.sqrshare;
 
-import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -9,6 +8,7 @@ import android.graphics.Color;
 import android.graphics.Rect;
 import android.net.Uri;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -27,8 +27,7 @@ public class SqrBitmapGenerator {
      * @return An appropriately sized bitmap.
      * @throws java.io.IOException if the provided URI could not be opened.
      */
-    public static Bitmap decodeSampledBitmapFromUri(Context c, Uri uri, int reqWidth, int reqHeight)
-            throws IOException {
+    public static Bitmap decodeSampledBitmapFromUri(Context c, Uri uri, int reqWidth, int reqHeight) throws IOException {
 
         InputStream input = c.getContentResolver().openInputStream(uri);
         // First decode with inJustDecodeBounds=true to check dimensions
@@ -100,13 +99,14 @@ public class SqrBitmapGenerator {
         return inSampleSize;
     }
 
-    //TODO  better error handling here, no nulls
-    public static Bitmap generate(Context c, Uri imageUri) {
-        try {
-            return makeSquare(decodeSampledBitmapFromUri(c, imageUri, MAX_RAW_IMG, MAX_RAW_IMG));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
+    /**
+     * Generates a Square Bitmap from the given Uri.
+     *
+     * @param c        The context in which to open the InputStream needed to decode the Bitmap.
+     * @param imageUri The Uri of the image to be turned into a sqr.
+     * @return an optimally scaled Bitmap for displaying in an ImageView.
+     */
+    public static Bitmap generate(Context c, Uri imageUri) throws IOException {
+        return makeSquare(decodeSampledBitmapFromUri(c, imageUri, MAX_RAW_IMG, MAX_RAW_IMG));
     }
 }

@@ -13,6 +13,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.FrameLayout;
 
+import java.io.IOException;
+
 import de.psdev.licensesdialog.LicensesDialog;
 import de.psdev.licensesdialog.licenses.ApacheSoftwareLicense20;
 import de.psdev.licensesdialog.licenses.MITLicense;
@@ -68,6 +70,9 @@ public class MainActivity extends ActionBarActivity implements
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -122,6 +127,17 @@ public class MainActivity extends ActionBarActivity implements
     }
 
     /**
+     * A method for Fragments to retrieve Bitmaps that are generated
+     * in our activity before the FragmentTransaction is committed.
+     *
+     * @return a square Bitmap to be displayed in the Fragment.
+     */
+    @Override
+    public Bitmap getGeneratedPic() {
+        return holder;
+    }
+
+    /**
      * Gets the height of the status bar.
      *
      * @return the status bar's height in pixels.
@@ -145,16 +161,31 @@ public class MainActivity extends ActionBarActivity implements
         Uri imageUri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
 
         if (imageUri != null)
-            holder = SqrBitmapGenerator.generate(this, imageUri);
+            try {
+                holder = SqrBitmapGenerator.generate(this, imageUri);
+            } catch (IOException e) {
+                e.printStackTrace();
+                Log.i("frankegan", "IOException" + e.toString());
+            }
         else Log.i("frankegan", "bad intent");
     }
 
-    //TODO abstract this and handleSentImage
+    /**
+     * A helper method for when an app shares an {@link android.content.Intent} to be Viewed in our app.
+     * It changes the {@link android.widget.ImageView} to the image of the given intent.
+     *
+     * @param intent The {@link android.content.Intent} of the image to be displayed.
+     */
     private void handleViewImage(Intent intent) {
         Uri imageUri = intent.getData();
 
         if (imageUri != null)
-            holder = SqrBitmapGenerator.generate(this, imageUri);
+            try {
+                holder = SqrBitmapGenerator.generate(this, imageUri);
+            } catch (IOException e) {
+                e.printStackTrace();
+                Log.i("frankegan", "IOException" + e.toString());
+            }
         else Log.i("frankegan", "bad intent");
     }
 
@@ -170,11 +201,6 @@ public class MainActivity extends ActionBarActivity implements
             shareIntent.putExtra(Intent.EXTRA_STREAM, uri);
             startActivity(Intent.createChooser(shareIntent, getResources().getText(R.string.send_to)));
         }
-    }
-
-    @Override
-    public Bitmap getGeneratedPic() {
-        return holder;
     }
 
     /**

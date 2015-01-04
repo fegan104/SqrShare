@@ -23,7 +23,9 @@ import com.melnykov.fab.FloatingActionButton;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.util.Date;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 
 /**
  * @author frankegan on 11/24/14.
@@ -42,10 +44,24 @@ public class PictureFragment extends Fragment implements PictureHolder, View.OnC
      * to the parent Activity
      */
     public interface OnColorsCalculatedListener {
+        /**
+         * A method to be called whenever the colors have been calculated for a specific Bitmap. This allows to Activity
+         *
+         * @param vibrant the color that was calculated
+         */
         public void onColorsCalculated(Integer vibrant);
     }
 
-    public interface PicGenerator{
+    /**
+     * An interface for Activities to implement that insure a way for Fragments
+     * to retrieve Bitmaps generated before the onActivityCreated is called.
+     */
+    public interface PicGenerator {
+        /**
+         * A method for getting the Bitmap that was calculated in the activity
+         *
+         * @return the Bitmap that was calculated in the Activity
+         */
         public Bitmap getGeneratedPic();
     }
 
@@ -57,15 +73,13 @@ public class PictureFragment extends Fragment implements PictureHolder, View.OnC
         super.onActivityCreated(savedInstanceState);
         setRetainInstance(true);
 
-        if(generator.getGeneratedPic() != null) {
+        //This is used when an app shares a picture to the Activity.
+        if (generator.getGeneratedPic() != null)
             setPicture(generator.getGeneratedPic());
-            calculateColors();
-        }
 
-        if (savedInstanceState != null) {
+        //This is used when the device has a configuration change.
+        if (savedInstanceState != null)
             setPicture(getFragmentData());
-            calculateColors();
-        }
     }
 
     /**
@@ -145,7 +159,12 @@ public class PictureFragment extends Fragment implements PictureHolder, View.OnC
      */
     @Override
     public void setPicture(Uri uri) {
-        imageView.setImageBitmap(SqrBitmapGenerator.generate(getActivity(), uri));
+        try {
+            imageView.setImageBitmap(SqrBitmapGenerator.generate(getActivity(), uri));
+        } catch (IOException e) {
+            e.printStackTrace();
+            Log.i("frankegan", "IOException" + e.toString());
+        }
         calculateColors();
     }
 
@@ -156,6 +175,7 @@ public class PictureFragment extends Fragment implements PictureHolder, View.OnC
         } else {
             Log.i("frankegan", "there was no imageview");
         }
+        calculateColors();
     }
 
     /**
@@ -189,7 +209,6 @@ public class PictureFragment extends Fragment implements PictureHolder, View.OnC
      *
      * @return The Uri of a scaled version of the square you're sharing.
      */
-    //TODO change file name to SQR_XXXX instead of date
     private Uri saveBitmapAndGetUri() {
         BitmapDrawable bitmapDrawable = (BitmapDrawable) imageView.getDrawable();
         if (bitmapDrawable != null) {
@@ -202,7 +221,8 @@ public class PictureFragment extends Fragment implements PictureHolder, View.OnC
             File dir = new File(file_path);
             if (!dir.exists())
                 dir.mkdirs();
-            File file = new File(dir, new Date().toString() + ".png");
+            String timeStamp = new SimpleDateFormat("HHmmss").format(Calendar.getInstance().getTime());
+            File file = new File(dir, "SQR_" + timeStamp + ".png");
             FileOutputStream fOut;
             try {
                 fOut = new FileOutputStream(file);
