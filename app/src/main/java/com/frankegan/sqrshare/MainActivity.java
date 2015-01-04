@@ -145,7 +145,7 @@ public class MainActivity extends ActionBarActivity implements
         Uri imageUri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
 
         if (imageUri != null)
-            holder = SquareBitmapGenerator.generateSqrBitmap(this, imageUri);
+            holder = SqrBitmapGenerator.generate(this, imageUri);
         else Log.i("frankegan", "bad intent");
     }
 
@@ -154,7 +154,7 @@ public class MainActivity extends ActionBarActivity implements
         Uri imageUri = intent.getData();
 
         if (imageUri != null)
-            holder = SquareBitmapGenerator.generateSqrBitmap(this, imageUri);
+            holder = SqrBitmapGenerator.generate(this, imageUri);
         else Log.i("frankegan", "bad intent");
     }
 

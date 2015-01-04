@@ -1,6 +1,7 @@
 package com.frankegan.sqrshare;
 
 import android.app.Activity;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -14,7 +15,7 @@ import java.io.InputStream;
 /**
  * @author frankegan created on 1/3/15.
  */
-public class SquareBitmapGenerator {
+public class SqrBitmapGenerator {
     public final static int MAX_RAW_IMG = 640;
 
     /**
@@ -26,10 +27,10 @@ public class SquareBitmapGenerator {
      * @return An appropriately sized bitmap.
      * @throws java.io.IOException if the provided URI could not be opened.
      */
-    public static Bitmap decodeSampledBitmapFromUri(Activity act, Uri uri, int reqWidth, int reqHeight)
+    public static Bitmap decodeSampledBitmapFromUri(Context c, Uri uri, int reqWidth, int reqHeight)
             throws IOException {
 
-        InputStream input = act.getContentResolver().openInputStream(uri);
+        InputStream input = c.getContentResolver().openInputStream(uri);
         // First decode with inJustDecodeBounds=true to check dimensions
         final BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
@@ -41,7 +42,7 @@ public class SquareBitmapGenerator {
 
         // Decode bitmap with inSampleSize set
         options.inJustDecodeBounds = false;
-        input = act.getContentResolver().openInputStream(uri);
+        input = c.getContentResolver().openInputStream(uri);
         Bitmap result = BitmapFactory.decodeStream(input, null, options);
         input.close();
         return result;
@@ -100,9 +101,9 @@ public class SquareBitmapGenerator {
     }
 
     //TODO  better error handling here, no nulls
-    public static Bitmap generateSqrBitmap(Activity act, Uri imageUri) {
+    public static Bitmap generate(Context c, Uri imageUri) {
         try {
-            return makeSquare(decodeSampledBitmapFromUri(act, imageUri, MAX_RAW_IMG, MAX_RAW_IMG));
+            return makeSquare(decodeSampledBitmapFromUri(c, imageUri, MAX_RAW_IMG, MAX_RAW_IMG));
         } catch (IOException e) {
             e.printStackTrace();
         }

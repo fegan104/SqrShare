@@ -145,7 +145,7 @@ public class PictureFragment extends Fragment implements PictureHolder, View.OnC
      */
     @Override
     public void setPicture(Uri uri) {
-        imageView.setImageBitmap(SquareBitmapGenerator.generateSqrBitmap(getActivity(), uri));
+        imageView.setImageBitmap(SqrBitmapGenerator.generate(getActivity(), uri));
         calculateColors();
     }
 
@@ -194,7 +194,7 @@ public class PictureFragment extends Fragment implements PictureHolder, View.OnC
         BitmapDrawable bitmapDrawable = (BitmapDrawable) imageView.getDrawable();
         if (bitmapDrawable != null) {
             Bitmap scaled = Bitmap.createScaledBitmap(bitmapDrawable.getBitmap(),
-                    SquareBitmapGenerator.MAX_RAW_IMG, SquareBitmapGenerator.MAX_RAW_IMG, true);
+                    SqrBitmapGenerator.MAX_RAW_IMG, SqrBitmapGenerator.MAX_RAW_IMG, true);
 
             String file_path = Environment.
                     getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
