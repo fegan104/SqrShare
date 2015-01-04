@@ -64,7 +64,7 @@ public class MainActivity extends ActionBarActivity implements
         //this is for apps trying to open images with our app
         if ((Intent.ACTION_VIEW.equals(action)) && (type != null) && (type.startsWith("image/"))) {
             Log.i("frankegan", "image was viewed in activity");
-            handleViewImage(intent.getData()); // Handle single image being sent to you
+            handleViewImage(intent); // Handle single image being sent to you
         }
     }
 
@@ -150,8 +150,8 @@ public class MainActivity extends ActionBarActivity implements
     }
 
     //TODO abstract this and handleSentImage
-    private void handleViewImage(Uri uri) {
-        Uri imageUri = uri;
+    private void handleViewImage(Intent intent) {
+        Uri imageUri = intent.getData();
 
         if (imageUri != null)
             holder = SquareBitmapGenerator.generateSqrBitmap(this, imageUri);
