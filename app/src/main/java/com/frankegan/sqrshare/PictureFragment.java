@@ -69,23 +69,6 @@ public class PictureFragment extends Fragment implements PictureHolder, View.OnC
      * {@inheritDoc}
      */
     @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        setRetainInstance(true);
-
-        //This is used when an app shares a picture to the Activity.
-        if (generator.getGeneratedPic() != null)
-            setPicture(generator.getGeneratedPic());
-
-        //This is used when the device has a configuration change.
-        if (savedInstanceState != null)
-            setPicture(getFragmentData());
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         // This makes sure that the container activity has implemented
@@ -115,6 +98,23 @@ public class PictureFragment extends Fragment implements PictureHolder, View.OnC
         fab = (FloatingActionButton) v.findViewById(R.id.fab);
         fab.setOnClickListener(this);
         return v;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        setRetainInstance(true);
+
+        //This is used when an app shares a picture to the Activity.
+        if (generator.getGeneratedPic() != null)
+            setPicture(generator.getGeneratedPic());
+
+        //This is used when the device has a configuration change.
+        if (savedInstanceState != null)
+            setPicture(getFragmentData());
     }
 
     /**
@@ -168,6 +168,12 @@ public class PictureFragment extends Fragment implements PictureHolder, View.OnC
         calculateColors();
     }
 
+    /**
+     * A method for setting the Picture to be displayed in the {@link android.support.v4.app.Fragment}.
+     *
+     * @param bm The Bitmap to be displayed.
+     */
+    @Override
     public void setPicture(Bitmap bm) {
         if (imageView != null) {
             Log.i("frankegan", "there was an imageview to set");
@@ -176,6 +182,59 @@ public class PictureFragment extends Fragment implements PictureHolder, View.OnC
             Log.i("frankegan", "there was no imageview");
         }
         calculateColors();
+    }
+
+    /**
+     * A method for getting the Uri for sharing the new square picture.
+     *
+     * @return the Uri of th fragment's ImageView.
+     */
+    @Override
+    public Uri getPictureUri() {
+        return saveBitmapAndGetUri();
+    }
+
+    /**
+     * sets the color of the Floating action button.
+     *
+     * @param clr the new background color of the FAB.
+     */
+    @Override
+    public void setFabColor(Integer clr) {
+        fab.setColorNormal(clr);
+    }
+
+    /**
+     * Sets the Bitmap data to be restored.
+     *
+     * @param data data to be saved
+     */
+    @Override
+    public void setFragmentData(Bitmap data) {
+        this.data = data;
+    }
+
+    /**
+     * Gets the data saved to the fragment for configuration changes.
+     *
+     * @return the Bitmap data saved to the fragment.
+     */
+    @Override
+    public Bitmap getFragmentData() {
+        return data;
+    }
+
+    /**
+     * Gets the Bitmap of the picture displayed in the Imageview.
+     *
+     * @return the picture's Bitmap
+     */
+    @Override
+    public Bitmap getPictureBitmap() {
+        BitmapDrawable bitmapDrawable = (BitmapDrawable) imageView.getDrawable();
+        if (bitmapDrawable != null)
+            return bitmapDrawable.getBitmap();
+        return null;
     }
 
     /**
@@ -192,16 +251,6 @@ public class PictureFragment extends Fragment implements PictureHolder, View.OnC
                             parent.onColorsCalculated(colorVib);
                         }
                     });
-    }
-
-    /**
-     * A method for getting the Uri for sharing the new square picture.
-     *
-     * @return the Uri of th fragment's ImageView.
-     */
-    @Override
-    public Uri getPictureUri() {
-        return saveBitmapAndGetUri();
     }
 
     /**
@@ -244,44 +293,5 @@ public class PictureFragment extends Fragment implements PictureHolder, View.OnC
         Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
         photoPickerIntent.setType("image/*");
         startActivityForResult(photoPickerIntent, SELECT_PHOTO);
-    }
-
-    /**
-     * sets the color of the Floating action button.
-     *
-     * @param clr the new background color of the FAB.
-     */
-    public void setFabColor(Integer clr) {
-        fab.setColorNormal(clr);
-    }
-
-    /**
-     * Gets the Bitmap of the picture displayed in the Imageview.
-     *
-     * @return the picture's Bitmap
-     */
-    public Bitmap getPictureBitmap() {
-        BitmapDrawable bitmapDrawable = (BitmapDrawable) imageView.getDrawable();
-        if (bitmapDrawable != null)
-            return bitmapDrawable.getBitmap();
-        return null;
-    }
-
-    /**
-     * Sets the Bitmap data to be restored.
-     *
-     * @param data data to be saved
-     */
-    public void setFragmentData(Bitmap data) {
-        this.data = data;
-    }
-
-    /**
-     * Gets the data saved to the fragment for configuration changes.
-     *
-     * @return the Bitmap data saved to the fragment.
-     */
-    public Bitmap getFragmentData() {
-        return data;
     }
 }

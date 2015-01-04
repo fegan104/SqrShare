@@ -6,6 +6,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -28,7 +29,7 @@ public class MainActivity extends ActionBarActivity implements
         PictureFragment.OnColorsCalculatedListener, PictureFragment.PicGenerator {
     private FrameLayout status;
     private final String tag = "pic";
-    private PictureFragment pic_fragment;
+    private PictureHolder pic_fragment;
     private Bitmap holder;
 
     /**
@@ -45,13 +46,13 @@ public class MainActivity extends ActionBarActivity implements
         String action = intent.getAction();
         String type = intent.getType();
 
-        pic_fragment = (PictureFragment) getSupportFragmentManager().findFragmentByTag(tag);
+        pic_fragment = (PictureHolder) getSupportFragmentManager().findFragmentByTag(tag);
 
         if (pic_fragment != null && pic_fragment.getFragmentData() != null) {
             pic_fragment.setPicture(pic_fragment.getFragmentData());
         } else if (pic_fragment == null) {
             pic_fragment = new PictureFragment();
-            getSupportFragmentManager().beginTransaction().add(R.id.fragment, pic_fragment, tag).commit();
+            getSupportFragmentManager().beginTransaction().add(R.id.fragment, (Fragment) pic_fragment, tag).commit();
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
