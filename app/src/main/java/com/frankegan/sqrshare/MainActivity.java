@@ -1,12 +1,14 @@
 package com.frankegan.sqrshare;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.FrameLayout;
@@ -21,10 +23,11 @@ import de.psdev.licensesdialog.model.Notices;
  * @author frankegan on 11/24/14.
  */
 public class MainActivity extends ActionBarActivity implements
-        PictureFragment.OnColorsCalculatedListener {
+        PictureFragment.OnColorsCalculatedListener, PictureFragment.PicGenerator {
     private FrameLayout status;
     private final String tag = "pic";
     private PictureFragment pic_fragment;
+    private Bitmap holder;
 
     /**
      * {@inheritDoc}
@@ -42,8 +45,8 @@ public class MainActivity extends ActionBarActivity implements
 
         pic_fragment = (PictureFragment) getSupportFragmentManager().findFragmentByTag(tag);
 
-        if (pic_fragment != null && pic_fragment.getData() != null) {
-            pic_fragment.setPicture(pic_fragment.getData());
+        if (pic_fragment != null && pic_fragment.getFragmentData() != null) {
+            pic_fragment.setPicture(pic_fragment.getFragmentData());
         } else if (pic_fragment == null) {
             pic_fragment = new PictureFragment();
             getSupportFragmentManager().beginTransaction().add(R.id.fragment, pic_fragment, tag).commit();
@@ -54,19 +57,21 @@ public class MainActivity extends ActionBarActivity implements
 
         //this if for apps sharing to the app
         if (Intent.ACTION_SEND.equals(action) && type != null && (type.startsWith("image/"))) {
+            Log.i("frankegan", "image was sent to activity");
             handleSentImage(intent); // Handle single image being sent to you
-
         }
 
         //this is for apps trying to open images with our app
-        if ((Intent.ACTION_VIEW.equals(action)) && (type != null) && (type.startsWith("image/")))
-            pic_fragment.setPicture(intent.getData());
+        if ((Intent.ACTION_VIEW.equals(action)) && (type != null) && (type.startsWith("image/"))) {
+            Log.i("frankegan", "image was viewed in activity");
+            handleViewImage(intent.getData()); // Handle single image being sent to you
+        }
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        pic_fragment.setData(pic_fragment.getPictureBitmap());
+        pic_fragment.setFragmentData(pic_fragment.getPictureBitmap());
     }
 
     /**
@@ -138,8 +143,19 @@ public class MainActivity extends ActionBarActivity implements
      */
     private void handleSentImage(Intent intent) {
         Uri imageUri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+
         if (imageUri != null)
-            pic_fragment.setPicture(imageUri);
+            holder = SquareBitmapGenerator.generateSqrBitmap(this, imageUri);
+        else Log.i("frankegan", "bad intent");
+    }
+
+    //TODO abstract this and handleSentImage
+    private void handleViewImage(Uri uri) {
+        Uri imageUri = uri;
+
+        if (imageUri != null)
+            holder = SquareBitmapGenerator.generateSqrBitmap(this, imageUri);
+        else Log.i("frankegan", "bad intent");
     }
 
     /**
@@ -154,6 +170,11 @@ public class MainActivity extends ActionBarActivity implements
             shareIntent.putExtra(Intent.EXTRA_STREAM, uri);
             startActivity(Intent.createChooser(shareIntent, getResources().getText(R.string.send_to)));
         }
+    }
+
+    @Override
+    public Bitmap getGeneratedPic() {
+        return holder;
     }
 
     /**

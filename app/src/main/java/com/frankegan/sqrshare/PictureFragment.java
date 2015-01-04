@@ -4,10 +4,7 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Build;
@@ -16,18 +13,16 @@ import android.os.Environment;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.graphics.Palette;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import com.melnykov.fab.FloatingActionButton;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Date;
 
 /**
@@ -35,11 +30,12 @@ import java.util.Date;
  */
 public class PictureFragment extends Fragment implements PictureHolder, View.OnClickListener {
     private final static int SELECT_PHOTO = 100;
-    private final static int MAX_RAW_IMG = 640;
     private OnColorsCalculatedListener parent;
+    private PicGenerator generator;
     private static ImageView imageView;
     private FloatingActionButton fab;
     private static Bitmap data;
+
 
     /**
      * An interface for communicating that the colors of the ImageView hav been calculated,
@@ -49,13 +45,8 @@ public class PictureFragment extends Fragment implements PictureHolder, View.OnC
         public void onColorsCalculated(Integer vibrant);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setRetainInstance(true);
+    public interface PicGenerator{
+        public Bitmap getGeneratedPic();
     }
 
     /**
@@ -64,8 +55,15 @@ public class PictureFragment extends Fragment implements PictureHolder, View.OnC
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        setRetainInstance(true);
+
+        if(generator.getGeneratedPic() != null) {
+            setPicture(generator.getGeneratedPic());
+            calculateColors();
+        }
+
         if (savedInstanceState != null) {
-            setPicture(getData());
+            setPicture(getFragmentData());
             calculateColors();
         }
     }
@@ -76,7 +74,6 @@ public class PictureFragment extends Fragment implements PictureHolder, View.OnC
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-
         // This makes sure that the container activity has implemented
         // the callback interface. If not, it throws an exception
         try {
@@ -84,6 +81,13 @@ public class PictureFragment extends Fragment implements PictureHolder, View.OnC
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString()
                     + " must implement OnColorsChangeListener");
+        }
+
+        try {
+            generator = (PicGenerator) activity;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(activity.toString()
+                    + " must implement PicGenerator");
         }
     }
 
@@ -119,7 +123,7 @@ public class PictureFragment extends Fragment implements PictureHolder, View.OnC
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        setData(getPictureBitmap());
+        setFragmentData(getPictureBitmap());
     }
 
     /**
@@ -141,62 +145,33 @@ public class PictureFragment extends Fragment implements PictureHolder, View.OnC
      */
     @Override
     public void setPicture(Uri uri) {
-        try {
-            imageView.setImageBitmap(makeSquare(decodeSampledBitmapFromUri(uri, MAX_RAW_IMG, MAX_RAW_IMG)));
-            calculateColors();
-        } catch (IOException e) {
-            e.printStackTrace();
-            Toast.makeText(getActivity(), "couldn't get that picture", Toast.LENGTH_SHORT).show();
-        }
+        imageView.setImageBitmap(SquareBitmapGenerator.generateSqrBitmap(getActivity(), uri));
+        calculateColors();
     }
 
     public void setPicture(Bitmap bm) {
-        imageView.setImageBitmap(bm);
+        if (imageView != null) {
+            Log.i("frankegan", "there was an imageview to set");
+            imageView.setImageBitmap(bm);
+        } else {
+            Log.i("frankegan", "there was no imageview");
+        }
     }
 
     /**
      * A helper method for generating and setting all the activity colors to match the Picture.
      */
     public void calculateColors() {
-        Palette.generateAsync(((BitmapDrawable) imageView.getDrawable()).getBitmap(),
-                new Palette.PaletteAsyncListener() {
-                    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-                    @Override
-                    public void onGenerated(Palette palette) {
-                        Integer colorVib = palette.getVibrantColor(Color.parseColor("black"));
-                        parent.onColorsCalculated(colorVib);
-                    }
-                });
-    }
-
-    /**
-     * Decodes an appropriately sized bitmap from the given Uri to be displayed by an ImageView.
-     *
-     * @param uri       The URI of the picture to be displayed.
-     * @param reqWidth  The requested width of the output image.
-     * @param reqHeight The requested height of the output image.
-     * @return An appropriately sized bitmap.
-     * @throws java.io.IOException if the provided URI could not be opened.
-     */
-    public Bitmap decodeSampledBitmapFromUri(Uri uri, int reqWidth, int reqHeight)
-            throws IOException {
-
-        InputStream input = getActivity().getContentResolver().openInputStream(uri);
-        // First decode with inJustDecodeBounds=true to check dimensions
-        final BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inJustDecodeBounds = true;
-        BitmapFactory.decodeStream(input, null, options);
-        input.close();
-
-        // Calculate inSampleSize
-        options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
-
-        // Decode bitmap with inSampleSize set
-        options.inJustDecodeBounds = false;
-        input = getActivity().getContentResolver().openInputStream(uri);
-        Bitmap result = BitmapFactory.decodeStream(input, null, options);
-        input.close();
-        return result;
+        if (imageView != null)
+            Palette.generateAsync(((BitmapDrawable) imageView.getDrawable()).getBitmap(),
+                    new Palette.PaletteAsyncListener() {
+                        @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+                        @Override
+                        public void onGenerated(Palette palette) {
+                            Integer colorVib = palette.getVibrantColor(Color.parseColor("black"));
+                            parent.onColorsCalculated(colorVib);
+                        }
+                    });
     }
 
     /**
@@ -219,7 +194,7 @@ public class PictureFragment extends Fragment implements PictureHolder, View.OnC
         BitmapDrawable bitmapDrawable = (BitmapDrawable) imageView.getDrawable();
         if (bitmapDrawable != null) {
             Bitmap scaled = Bitmap.createScaledBitmap(bitmapDrawable.getBitmap(),
-                    MAX_RAW_IMG, MAX_RAW_IMG, true);
+                    SquareBitmapGenerator.MAX_RAW_IMG, SquareBitmapGenerator.MAX_RAW_IMG, true);
 
             String file_path = Environment.
                     getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
@@ -252,58 +227,6 @@ public class PictureFragment extends Fragment implements PictureHolder, View.OnC
     }
 
     /**
-     * A method that calculates how much a bitmap should be scaled down by.
-     *
-     * @param options   {@link android.graphics.BitmapFactory.Options} with "inJustDecodeBounds"
-     *                  set to true that has already been used to decoded a bitmap.
-     * @param reqWidth  The requested width of the output image.
-     * @param reqHeight The requested height of the output image.
-     * @return the nearest power of two that can be used to scale a bitmap to the requested
-     * height and width.
-     */
-    public static int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
-        // Raw height and width of image
-        final int height = options.outHeight;
-        final int width = options.outWidth;
-        int inSampleSize = 1;
-
-        if (height > reqHeight || width > reqWidth) {
-
-            final int halfHeight = height / 2;
-            final int halfWidth = width / 2;
-            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
-            // height and width larger than the requested height and width.
-            while (((halfHeight / inSampleSize) > reqHeight)
-                    && ((halfWidth / inSampleSize) > reqWidth))
-                inSampleSize *= 2;
-        }
-        return inSampleSize;
-    }
-
-    /**
-     * A method for adding a border to a bitmap so that the resulting image is square.
-     *
-     * @param source bitmap to be made square.
-     * @return the original bitmap with borders added to either the top or bottom
-     * such that it is now square.
-     */
-    public static Bitmap makeSquare(Bitmap source) {
-        boolean landscape = source.getWidth() > source.getHeight();
-        final int LENGTH = landscape ? source.getWidth() : source.getHeight();
-        Rect rect = landscape ?
-                new Rect(0, (LENGTH / 2) - (source.getHeight() / 2),
-                        LENGTH, (LENGTH / 2) + (source.getHeight() / 2))
-                :
-                new Rect((LENGTH / 2) - (source.getWidth() / 2), 0,
-                        (LENGTH / 2) + (source.getWidth() / 2), LENGTH);
-        Bitmap square = Bitmap.createBitmap(LENGTH, LENGTH, source.getConfig());
-        Canvas canvas = new Canvas(square);
-        canvas.drawColor(Color.WHITE);
-        canvas.drawBitmap(source, null, rect, null);
-        return square;
-    }
-
-    /**
      * sets the color of the Floating action button.
      *
      * @param clr the new background color of the FAB.
@@ -314,6 +237,7 @@ public class PictureFragment extends Fragment implements PictureHolder, View.OnC
 
     /**
      * Gets the Bitmap of the picture displayed in the Imageview.
+     *
      * @return the picture's Bitmap
      */
     public Bitmap getPictureBitmap() {
@@ -325,17 +249,19 @@ public class PictureFragment extends Fragment implements PictureHolder, View.OnC
 
     /**
      * Sets the Bitmap data to be restored.
+     *
      * @param data data to be saved
      */
-    public void setData(Bitmap data) {
+    public void setFragmentData(Bitmap data) {
         this.data = data;
     }
 
     /**
      * Gets the data saved to the fragment for configuration changes.
+     *
      * @return the Bitmap data saved to the fragment.
      */
-    public Bitmap getData() {
+    public Bitmap getFragmentData() {
         return data;
     }
 }
