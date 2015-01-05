@@ -48,9 +48,7 @@ public class MainActivity extends ActionBarActivity implements
 
         pic_fragment = (PictureHolder) getSupportFragmentManager().findFragmentByTag(tag);
 
-        if (pic_fragment != null && pic_fragment.getFragmentData() != null) {
-            pic_fragment.setPicture(pic_fragment.getFragmentData());
-        } else if (pic_fragment == null) {
+        if (pic_fragment == null) {
             pic_fragment = new PictureFragment();
             getSupportFragmentManager().beginTransaction().add(R.id.fragment, (Fragment) pic_fragment, tag).commit();
         }
