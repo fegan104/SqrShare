@@ -17,6 +17,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 
 import com.melnykov.fab.FloatingActionButton;
@@ -161,6 +163,8 @@ public class PictureFragment extends Fragment implements PictureHolder, View.OnC
     public void setPicture(Uri uri) {
         try {
             imageView.setImageBitmap(SqrBitmapGenerator.generate(getActivity(), uri));
+            Animation scale = AnimationUtils.loadAnimation(getActivity(), R.anim.scale_sqr);
+            imageView.startAnimation(scale);
         } catch (IOException e) {
             e.printStackTrace();
             Log.i("frankegan", "IOException" + e.toString());
@@ -176,8 +180,9 @@ public class PictureFragment extends Fragment implements PictureHolder, View.OnC
     @Override
     public void setPicture(Bitmap bm) {
         if (imageView != null) {
-            Log.i("frankegan", "there was an imageview to set");
             imageView.setImageBitmap(bm);
+            Animation scale = AnimationUtils.loadAnimation(getActivity(), R.anim.scale_sqr);
+            imageView.startAnimation(scale);
         } else {
             Log.i("frankegan", "there was no imageview");
         }
