@@ -256,12 +256,14 @@ public class PictureFragment extends Fragment implements PictureHolder, View.OnC
     public void rotatePicture() {
         //TODO don't crash on empty call
         //TODO figure what's up with moving imageview/ not rotating again
-        Matrix matrix = new Matrix();
-        imageView.setScaleType(ImageView.ScaleType.MATRIX);   //required
-        matrix.postRotate(90f,
-                imageView.getDrawable().getBounds().width() / 2,
-                imageView.getDrawable().getBounds().height() / 2);
-        imageView.setImageMatrix(matrix);
+        if (imageView != null) {
+            Matrix matrix = new Matrix();
+            imageView.setScaleType(ImageView.ScaleType.MATRIX);   //required
+            matrix.postRotate(90f,
+                    imageView.getDrawable().getBounds().width() / 2,
+                    imageView.getDrawable().getBounds().height() / 2);
+            imageView.setImageMatrix(matrix);
+        }
     }
 
     /**
