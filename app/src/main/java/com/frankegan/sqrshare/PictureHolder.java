@@ -21,4 +21,6 @@ public interface PictureHolder {
     public Bitmap getFragmentData();
 
     public void setFabColor(Integer clr);
+
+    public void rotatePicture();
 }

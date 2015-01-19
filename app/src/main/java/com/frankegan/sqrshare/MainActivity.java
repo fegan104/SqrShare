@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.FrameLayout;
+import android.widget.Toast;
 
 import java.io.IOException;
 
@@ -100,6 +101,9 @@ public class MainActivity extends ActionBarActivity implements
                 return true;
             case R.id.action_share:
                 sharePicture();
+                return true;
+            case R.id.action_rotate:
+                pic_fragment.rotatePicture();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

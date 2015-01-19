@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Build;
@@ -15,6 +16,8 @@ import android.support.v4.app.Fragment;
 import android.support.v7.graphics.Palette;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
@@ -117,6 +120,7 @@ public class PictureFragment extends Fragment implements PictureHolder, View.OnC
         //This is used when the device has a configuration change.
         if (savedInstanceState != null)
             setPicture(getFragmentData());
+        setHasOptionsMenu(true);
     }
 
     /**
@@ -140,6 +144,12 @@ public class PictureFragment extends Fragment implements PictureHolder, View.OnC
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         setFragmentData(getPictureBitmap());
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        getActivity().getMenuInflater().inflate(R.menu.picture_fragment_menu, menu);
+        super.onCreateOptionsMenu(menu, inflater);
     }
 
     /**
@@ -240,6 +250,18 @@ public class PictureFragment extends Fragment implements PictureHolder, View.OnC
         if (bitmapDrawable != null)
             return bitmapDrawable.getBitmap();
         return null;
+    }
+
+    @Override
+    public void rotatePicture() {
+        //TODO don't crash on empty call
+        //TODO figure what's up with moving imageview/ not rotating again
+        Matrix matrix = new Matrix();
+        imageView.setScaleType(ImageView.ScaleType.MATRIX);   //required
+        matrix.postRotate(90f,
+                imageView.getDrawable().getBounds().width() / 2,
+                imageView.getDrawable().getBounds().height() / 2);
+        imageView.setImageMatrix(matrix);
     }
 
     /**
