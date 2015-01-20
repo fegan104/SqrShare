@@ -254,7 +254,7 @@ public class PictureFragment extends Fragment implements PictureHolder, View.OnC
     }
 
     @Override
-    //TODO apply memory management techniques
+    //TODO apply bitmap memory management techniques
     public void rotatePicture() {
         if (imageView.getDrawable() != null) {
             Log.i("frankegan", "rotated");
