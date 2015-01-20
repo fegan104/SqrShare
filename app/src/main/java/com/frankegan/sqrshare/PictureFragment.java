@@ -4,6 +4,7 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.drawable.BitmapDrawable;
@@ -98,7 +99,7 @@ public class PictureFragment extends Fragment implements PictureHolder, View.OnC
      */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View v = inflater.inflate(R.layout.fragment_layout, container, false);
+        View v = inflater.inflate(R.layout.picture_fragment_layout, container, false);
         imageView = (ImageView) v.findViewById(R.id.imageView);
         fab = (FloatingActionButton) v.findViewById(R.id.fab);
         fab.setOnClickListener(this);
@@ -159,7 +160,7 @@ public class PictureFragment extends Fragment implements PictureHolder, View.OnC
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.fab:
-                openPicture();
+                selectPicture();
                 break;
         }
     }
@@ -253,16 +254,18 @@ public class PictureFragment extends Fragment implements PictureHolder, View.OnC
     }
 
     @Override
+    //TODO apply memory management techniques
     public void rotatePicture() {
-        //TODO don't crash on empty call
-        //TODO figure what's up with moving imageview/ not rotating again
-        if (imageView != null) {
+        if (imageView.getDrawable() != null) {
+            Log.i("frankegan", "rotated");
             Matrix matrix = new Matrix();
-            imageView.setScaleType(ImageView.ScaleType.MATRIX);   //required
-            matrix.postRotate(90f,
-                    imageView.getDrawable().getBounds().width() / 2,
-                    imageView.getDrawable().getBounds().height() / 2);
-            imageView.setImageMatrix(matrix);
+            Bitmap bitmap = getPictureBitmap();
+            matrix.postRotate(90f);
+            Bitmap bMapRotate = Bitmap.createBitmap(bitmap, 0, 0,bitmap.getWidth(),
+                    bitmap.getHeight(), matrix, true);
+            imageView.setImageBitmap(bMapRotate);
+            Animation rotate = AnimationUtils.loadAnimation(getActivity(), R.anim.rotate_sqr);
+            imageView.startAnimation(rotate);
         }
     }
 
@@ -318,7 +321,7 @@ public class PictureFragment extends Fragment implements PictureHolder, View.OnC
     /**
      * Lets you choose a picture from the Gallery to be opened in the app.
      */
-    public void openPicture() {
+    public void selectPicture() {
         Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
         photoPickerIntent.setType("image/*");
         startActivityForResult(photoPickerIntent, SELECT_PHOTO);
