@@ -13,7 +13,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.FrameLayout;
-import android.widget.Toast;
 
 import java.io.IOException;
 
@@ -27,7 +26,8 @@ import de.psdev.licensesdialog.model.Notices;
  * @author frankegan on 11/24/14.
  */
 public class MainActivity extends ActionBarActivity implements
-        PictureFragment.OnColorsCalculatedListener, PictureFragment.PicGenerator {
+        PictureFragment.OnColorsCalculatedListener,
+        PictureFragment.PicGenerator {
     private FrameLayout status;
     private final String tag = "pic";
     private PictureHolder pic_fragment;
