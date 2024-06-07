@@ -4,3 +4,11 @@
 /.idea/libraries
 .DS_Store
 /build
+.kotlin
+/java_pid30916.hprof
+/app/release/app-release.apk
+/app/release/output.json
+/.idea/caches
+/.idea/modules.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml

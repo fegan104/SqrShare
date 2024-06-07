@@ -1,31 +1,56 @@
-apply plugin: 'com.android.application'
+plugins {
+    id "com.android.application"
+    id "org.jetbrains.kotlin.android"
+    id "org.jetbrains.kotlin.plugin.compose"
+}
 
 android {
-    compileSdkVersion 21
-    buildToolsVersion "21.1.1"
+    namespace 'com.frankegan.sqrshare'
 
     defaultConfig {
         applicationId "com.frankegan.sqrshare"
-        minSdkVersion 8
-        targetSdkVersion 21
+        minSdkVersion 26
+        compileSdk 34
         versionCode 6
         versionName "1.3"
+    }
+    signingConfigs {
+        MBP2011 {
+            storeFile file('/Users/frankegan/Developer/AndroidStudioProjects/keystore/MBP2011/debug.keystore')
+        }
     }
     buildTypes {
         debug {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = '17'
     }
 }
 
 dependencies {
-    compile('de.psdev.licensesdialog:licensesdialog:1.6.0') {
+    implementation('de.psdev.licensesdialog:licensesdialog:1.6.0') {
         exclude module: 'support-v4'
     }
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:appcompat-v7:21.0.2'
-    compile 'com.android.support:palette-v7:21.0.2'
-    compile 'com.melnykov:floatingactionbutton:1.1.0'
-    compile 'com.android.support:support-v4:21.0.2'
+    implementation "androidx.compose.runtime:runtime:1.6.7"
+    implementation "androidx.compose.material3:material3:1.2.1"
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'androidx.palette:palette-ktx:1.0.0'
+    implementation 'com.melnykov:floatingactionbutton:1.1.0'
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+    implementation 'androidx.core:core-ktx:1.13.1'
+    implementation 'com.google.android.material:material:1.12.0'
+    implementation 'androidx.activity:activity-compose:1.9.0'
+    implementation 'androidx.activity:activity-ktx:1.9.0'
+    implementation 'androidx.lifecycle:lifecycle-runtime-compose:2.7.0'
 }
