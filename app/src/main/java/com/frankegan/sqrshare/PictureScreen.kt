@@ -1,10 +1,9 @@
 package com.frankegan.sqrshare
 
 import android.graphics.Bitmap
-import android.widget.ImageButton
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -13,14 +12,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Call
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -35,22 +28,27 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 
+/**
+ * @param image The square image to display or null if none has been selected yet.
+ * @param onOpenGallery Requests the image picker be launched.
+ * @param onShare A lambda function that is triggered when the "Share" button
+ * is clicked. It takes the [Bitmap] and the current rotation degrees as parameters.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PictureScreen(
@@ -58,9 +56,14 @@ fun PictureScreen(
     onOpenGallery: () -> Unit,
     onShare: (bitmap: Bitmap, rotationDegrees: Float) -> Unit,
 ) {
-    var rotation by remember { mutableFloatStateOf(0f) }
     var showMenu by remember { mutableStateOf(false) }
     var showAboutDialog by remember { mutableStateOf(false) }
+    var rotation by rememberSaveable { mutableFloatStateOf(0f) }
+    val animatedAngle by animateFloatAsState(
+        label = "image_angle",
+        targetValue = rotation,
+        animationSpec = tween(durationMillis = 300),
+    )
 
     Scaffold(
         modifier = Modifier.navigationBarsPadding(),
@@ -77,7 +80,7 @@ fun PictureScreen(
                                 tint = MaterialTheme.colorScheme.onPrimary,
                             )
                         }
-                        IconButton(onClick = { rotation = ((rotation + 270f) % 360) }) {
+                        IconButton(onClick = { rotation -= 90f }) {
                             Icon(
                                 painterResource(R.drawable.baseline_rotate_left_24),
                                 contentDescription = "rotate left",
@@ -117,7 +120,7 @@ fun PictureScreen(
                     Image(
                         bitmap = image.asImageBitmap(),
                         contentDescription = "selected image",
-                        modifier = Modifier.fillMaxSize().rotate(rotation),
+                        modifier = Modifier.fillMaxSize().rotate(animatedAngle),
                         contentScale = ContentScale.Fit,
                     )
                 } else {

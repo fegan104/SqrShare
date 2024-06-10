@@ -55,7 +55,7 @@ fun SqrShareTheme(computedColor: Color?, content: @Composable () -> Unit) {
 
 /**
  * Sets up edge-to-edge for the window of this [view]. The system icon colors are set to either
- * light or dark depending on whether the [darkTheme] is enabled or not.
+ * light or dark depending on the computed color.
  */
 private fun setUpEdgeToEdge(view: View, isLightColor: Boolean) {
     val window = (view.context as Activity).window

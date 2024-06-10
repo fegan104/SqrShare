@@ -2,8 +2,7 @@
 <resources>
 
     <string name="app_name">SqrShare</string>
-    <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
-    <string name="send_to">send to</string>
+    <string name="send_to">Send to</string>
 
 </resources>

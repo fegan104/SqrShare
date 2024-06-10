@@ -1,211 +1,115 @@
 package com.frankegan.sqrshare
 
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.drawable.ColorDrawable
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.view.Menu
-import android.view.MenuItem
-import android.view.View
-import android.widget.FrameLayout
+import androidx.activity.compose.setContent
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.Toolbar
-import androidx.fragment.app.Fragment
-import com.frankegan.sqrshare.PictureFragment.OnColorsCalculatedListener
-import com.frankegan.sqrshare.PictureFragment.PicGenerator
-import de.psdev.licensesdialog.LicensesDialog
-import de.psdev.licensesdialog.licenses.ApacheSoftwareLicense20
-import de.psdev.licensesdialog.licenses.MITLicense
-import de.psdev.licensesdialog.model.Notice
-import de.psdev.licensesdialog.model.Notices
-import java.io.IOException
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.colorResource
+import androidx.core.content.IntentCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import com.frankegan.sqrshare.ui.SqrShareTheme
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 
-/**
- * @author frankegan on 11/24/14.
- */
-class MainActivity : AppCompatActivity(), OnColorsCalculatedListener, PicGenerator {
-    private var status: FrameLayout? = null
-    private val tag = "pic"
-    private var pic_fragment: PictureHolder? = null
 
-    /**
-     * A method for Fragments to retrieve Bitmaps that are generated
-     * in our activity before the FragmentTransaction is committed.
-     *
-     * @return a square Bitmap to be displayed in the Fragment.
-     */
-    override var generatedPic: Bitmap? = null
-        private set
+class MainActivity : AppCompatActivity() {
+    private val viewModel by viewModels<PhotoViewModel>()
 
-    /**
-     * {@inheritDoc}
-     */
+    // Registers a photo picker activity launcher in single-select mode.
+    private val pickMedia = registerForActivityResult(PickVisualMedia()) { imageUri ->
+        // Callback is invoked after the user selects a media item or closes the
+        // photo picker.
+        if (imageUri != null) {
+            viewModel.onImageSelected(imageUri)
+        } else {
+            Log.d("PhotoPicker", "No media selected")
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.main_layout)
-        status = findViewById<View>(R.id.status) as FrameLayout
-        val toolbar = findViewById<View>(R.id.my_awesome_toolbar) as Toolbar
-        setSupportActionBar(toolbar)
-        val intent = intent
         val action = intent.action
         val type = intent.type
-        pic_fragment = supportFragmentManager.findFragmentByTag(tag) as PictureHolder?
-        if (pic_fragment == null) {
-            pic_fragment = PictureFragment()
-            supportFragmentManager.beginTransaction().add(R.id.fragment, (pic_fragment as Fragment?)!!, tag).commit()
-        }
-        status!!.minimumHeight = statusBarHeight
-
         //this if for apps sharing to the app
         if (Intent.ACTION_SEND == action && type != null && type.startsWith("image/")) {
-            Log.i("frankegan", "image was sent to activity")
-            handleSentImage(intent) // Handle single image being sent to you
+            handleSentImage(intent)
         }
-
         //this is for apps trying to open images with our app
         if (Intent.ACTION_VIEW == action && type != null && type.startsWith("image/")) {
-            Log.i("frankegan", "image was viewed in activity")
-            handleViewImage(intent) // Handle single image being sent to you
+            handleViewImage(intent)
         }
-    }
 
-    /**
-     * {@inheritDoc}
-     */
-    override fun onDestroy() {
-        super.onDestroy()
-        pic_fragment!!.setFragmentData(pic_fragment!!.pictureBitmap!!)
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        menuInflater.inflate(R.menu.main, menu)
-        return super.onCreateOptionsMenu(menu)
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        //finds the actionBar item that was clicked
-        val itemId = item.itemId
-        if (itemId == R.id.action_about) {
-            showAbout()
-            return true
-        } else if (itemId == R.id.action_share) {
-            sharePicture()
-            return true
-        } else if (itemId == R.id.action_rotate) {
-            pic_fragment!!.rotatePicture()
-            return true
-        }
-        return super.onOptionsItemSelected(item)
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    override fun onActivityResult(requestCode: Int, resultCode: Int, imageReturnedIntent: Intent?) {
-        super.onActivityResult(requestCode, resultCode, imageReturnedIntent)
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    override fun onColorsCalculated(vib: Int?) {
-        pic_fragment!!.setFabColor(vib)
-        supportActionBar!!.setBackgroundDrawable(ColorDrawable(vib!!))
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) status!!.setBackgroundColor(vib)
-    }
-
-    val statusBarHeight: Int
-        /**
-         * Gets the height of the status bar.
-         *
-         * @return the status bar's height in pixels.
-         */
-        get() {
-            var result = 0
-            val resourceId = resources.getIdentifier("status_bar_height", "dimen", "android")
-            if (resourceId > 0) {
-                result = resources.getDimensionPixelSize(resourceId)
+        //Collect events to be notified when an image file is ready to be shared
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.shareImageEvents.collect { savedImage ->
+                    shareImage(savedImage)
+                }
             }
-            return result
         }
+
+        setContent {
+            val imageBitmap by viewModel.selectedImageBitmap.collectAsStateWithLifecycle(null)
+            val selectedColor by viewModel.selectedImageColor.collectAsStateWithLifecycle(null)
+
+            SqrShareTheme(selectedColor) {
+                // A surface container using the 'background' color from the theme
+                Surface(modifier = Modifier.fillMaxSize()) {
+                    PictureScreen(
+                        image = imageBitmap,
+                        onOpenGallery = {
+                            pickMedia.launch(PickVisualMediaRequest(PickVisualMedia.ImageOnly))
+                        },
+                        onShare = { image, rotationDegrees ->
+                            viewModel.onShareImage(image, rotationDegrees)
+                        }
+                    )
+                }
+            }
+        }
+    }
 
     /**
      * A helper method for when an app shares an [android.content.Intent] to be opened by our app.
-     * It changes the [android.widget.ImageView] to the image of the given intent.
      *
      * @param intent The [android.content.Intent] of the image to be displayed.
      */
     private fun handleSentImage(intent: Intent) {
-        val imageUri = intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)
-        if (imageUri != null) try {
-            generatedPic = SqrBitmapGenerator.generate(this, imageUri)
-        } catch (e: IOException) {
-            e.printStackTrace()
-            Log.i("frankegan", "IOException$e")
-        } else Log.i("frankegan", "bad intent")
+        val imageUri = IntentCompat.getParcelableExtra(intent, Intent.EXTRA_STREAM, Uri::class.java) ?: return
+        viewModel.onImageSelected(imageUri)
     }
 
     /**
      * A helper method for when an app shares an [android.content.Intent] to be Viewed in our app.
-     * It changes the [android.widget.ImageView] to the image of the given intent.
      *
      * @param intent The [android.content.Intent] of the image to be displayed.
      */
     private fun handleViewImage(intent: Intent) {
-        val imageUri = intent.data
-        if (imageUri != null) try {
-            generatedPic = SqrBitmapGenerator.generate(this, imageUri)
-        } catch (e: IOException) {
-            e.printStackTrace()
-            Log.i("frankegan", "IOException$e")
-        } else Log.i("frankegan", "bad intent")
+        val imageUri = intent.data ?: return
+        viewModel.onImageSelected(imageUri)
     }
 
     /**
-     * Shares the image currently being displayed by the [android.widget.ImageView].
+     * Sends the given image uri to the system share sheet, or nothing if the uri is null.
      */
-    private fun sharePicture() {
-        val uri = pic_fragment?.pictureUri
-        if (uri != null) {
-            val shareIntent = Intent()
-            shareIntent.setAction(Intent.ACTION_SEND)
-            shareIntent.setType("image/*")
-            shareIntent.putExtra(Intent.EXTRA_STREAM, uri)
-            startActivity(Intent.createChooser(shareIntent, resources.getText(R.string.send_to)))
-        }
-    }
-
-    /**
-     * Opens a dialog listing all licenses of 3rd party libraries used in the project.
-     */
-    private fun showAbout() {
-        val notices = Notices()
-        notices.addNotice(
-            Notice(
-                "LicensesDialog",
-                "http://psdev.de",
-                "Copyright 2013 Philip Schiffer <admin@psdev.de>",
-                ApacheSoftwareLicense20()
-            )
-        )
-        notices.addNotice(
-            Notice(
-                "FloatingActionButton",
-                "https://github.com/makovkastar/FloatingActionButton",
-                "Copyright (c) 2014 Oleksandr Melnykov",
-                MITLicense()
-            )
-        )
-        LicensesDialog.Builder(this).setNotices(notices).build().show()
+    private fun shareImage(savedImage: Uri?) {
+        savedImage ?: return
+        val shareIntent = Intent()
+            .setAction(Intent.ACTION_SEND)
+            .setType("image/*")
+            .putExtra(Intent.EXTRA_STREAM, savedImage)
+        startActivity(Intent.createChooser(shareIntent, resources.getText(R.string.send_to)))
     }
 }
