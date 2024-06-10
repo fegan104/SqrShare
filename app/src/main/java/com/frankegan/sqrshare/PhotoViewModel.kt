@@ -28,10 +28,19 @@ class PhotoViewModel(private val app: Application): AndroidViewModel(app) {
     private val _selectedImageColor = MutableStateFlow<Color?>(null)
     private val _shareImageEvent = MutableSharedFlow<Uri?>()
 
+    /**
+     * The square bitmap of the selected image.
+     */
     val selectedImageBitmap: Flow<Bitmap?> = _selectedImageBitmap
 
+    /**
+     * A vibrant color picked from the selected image.
+     */
     val selectedImageColor: Flow<Color?> = _selectedImageColor
 
+    /**
+     * The Uri for a square has been saved and should now be shared.
+     */
     val shareImageEvents: Flow<Uri> = _shareImageEvent.filterNotNull()
 
     /**
