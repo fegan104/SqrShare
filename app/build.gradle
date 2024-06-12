@@ -60,4 +60,5 @@ dependencies {
     androidTestImplementation 'org.jetbrains.kotlin:kotlin-test'
     androidTestImplementation 'androidx.test:runner:1.5.2'
     androidTestImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0'
+    androidTestImplementation 'androidx.compose.ui:ui-test-junit4:1.6.7'
 }
