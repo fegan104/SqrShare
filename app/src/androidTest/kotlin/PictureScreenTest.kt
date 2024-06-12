@@ -1,9 +1,7 @@
 import android.content.Context
 import androidx.activity.compose.setContent
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -29,7 +27,6 @@ class PictureScreenTest {
     @Test
     fun openGallery() {
         var galleryOpened = false
-        // Start the app
         composeTestRule.activity.setContent {
             SqrShareTheme(computedColor = null) {
                 PictureScreen(
