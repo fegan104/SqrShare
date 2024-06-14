@@ -1,3 +1,5 @@
+package com.frankegan.sqrshare
+
 import android.content.Context
 import androidx.activity.compose.setContent
 import androidx.compose.ui.test.assertIsDisplayed
@@ -7,9 +9,6 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.frankegan.sqrshare.MainActivity
-import com.frankegan.sqrshare.PictureScreen
-import com.frankegan.sqrshare.SqrBitmapGenerator
 import com.frankegan.sqrshare.ui.SqrShareTheme
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule

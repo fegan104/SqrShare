@@ -1,8 +1,9 @@
+package com.frankegan.sqrshare
+
 import android.content.Context
 import android.graphics.Bitmap
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.frankegan.sqrshare.SqrBitmapGenerator
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertNotNull
 import org.junit.Test

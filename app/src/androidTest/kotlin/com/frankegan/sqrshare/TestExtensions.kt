@@ -1,3 +1,5 @@
+package com.frankegan.sqrshare
+
 import android.content.res.AssetManager
 import android.net.Uri
 import androidx.core.content.FileProvider
