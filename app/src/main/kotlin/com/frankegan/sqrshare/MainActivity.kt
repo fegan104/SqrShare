@@ -13,14 +13,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.colorResource
 import androidx.core.content.IntentCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.frankegan.sqrshare.ui.SqrShareTheme
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 
