@@ -12,8 +12,8 @@ import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.FileNotFoundException
-import java.io.IOException
 import java.io.InputStream
+import androidx.core.graphics.createBitmap
 
 /**
  * @author frankegan created on 1/3/15.
@@ -76,7 +76,7 @@ object SqrBitmapGenerator {
      * such that it is now square.
      */
     private fun makeSquare(source: Bitmap?): Bitmap? {
-        source ?: return null
+        val sourceConfig = source?.config ?: return null
         val landscape = source.width > source.height
         val length = if (landscape) source.width else source.height
         val rect = if (landscape) Rect(
@@ -86,7 +86,7 @@ object SqrBitmapGenerator {
             length / 2 - source.width / 2, 0,
             length / 2 + source.width / 2, length
         )
-        val square = Bitmap.createBitmap(length, length, source.config)
+        val square = createBitmap(length, length, sourceConfig)
         val canvas = Canvas(square)
         canvas.drawColor(Color.WHITE)
         canvas.drawBitmap(source, null, rect, null)
